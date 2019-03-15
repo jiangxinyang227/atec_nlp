@@ -50,7 +50,6 @@ class DataSet(object):
 
         np.save("word2vec/word_embedding.npy", word_embedding)
 
-        # 将词汇-索引映射表保存为json数据，之后做inference时直接加载来处理数据
         with open("word2vec/word2idx.pkl", "wb") as f:
             pickle.dump(self.word_to_idx, f)
 
