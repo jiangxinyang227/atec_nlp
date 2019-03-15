@@ -44,7 +44,7 @@ class DataSet(object):
         self.word_to_idx = dict(zip(vocab, list(range(len(vocab)))))
         self.idx_to_word = dict(zip(list(range(len(vocab))), vocab))
 
-        with open("word2vec.vocab.txt", "a", encoding="utf8") as fw:
+        with open("word2vec/vocab.txt", "a", encoding="utf8") as fw:
             for word in vocab:
                 fw.write(word)
 
