@@ -1,6 +1,7 @@
 """
 准备训练数据
 """
+import os
 from collections import Counter
 import pickle
 import random
@@ -9,8 +10,18 @@ import numpy as np
 
 
 class DataSet(object):
-    def __init__(self, filename, embedding_size, ratio=0.05, is_concat=True):
+    def __init__(self, filename, embedding_size, model, down_sample=True, ratio=0.05, is_concat=True):
+        """
+        数据预处理
+        :param filename: 原始数据文件
+        :param embedding_size: 词向量大小
+        :param model: 所用的模型文件名称
+        :param ratio: 验证集比例
+        :param is_concat: 两个句子是否合并输入
+        """
         self.filename = filename
+        self.model = model
+        self.down_sample = down_sample
         self.ratio = ratio
         self.embedding_size = embedding_size
         self.is_concat = is_concat
@@ -44,16 +55,16 @@ class DataSet(object):
         self.word_to_idx = dict(zip(vocab, list(range(len(vocab)))))
         self.idx_to_word = dict(zip(list(range(len(vocab))), vocab))
 
-        with open("word2vec/vocab.txt", "a", encoding="utf8") as fw:
+        with open("word2vec/" + self.model + "/vocab.txt", "a", encoding="utf8") as fw:
             for word in vocab:
                 fw.write(word)
 
-        np.save("word2vec/word_embedding.npy", word_embedding)
+        np.save("word2vec/" + self.model + "/word_embedding.npy", word_embedding)
 
-        with open("word2vec/word2idx.pkl", "wb") as f:
+        with open("word2vec/" + self.model + "/word2idx.pkl", "wb") as f:
             pickle.dump(self.word_to_idx, f)
 
-        with open("word2vec/idx2word.pkl", "wb") as f:
+        with open("word2vec/" + self.model + "/idx2word.pkl", "wb") as f:
             pickle.dump(self.idx_to_word, f)
 
     def _get_word_embedding(self, words):
@@ -114,8 +125,8 @@ class DataSet(object):
 
             new_label = [row[2] for row in batch]
 
-            return dict(first_x=first_sent, first_len=first_sent_length, second_x=second_sent,
-                        second_len=second_sent_length, label=new_label)
+            return dict(a=first_sent, a_len=first_sent_length, b=second_sent,
+                        b_len=second_sent_length, label=new_label)
 
     def _transition_idx(self, x):
         return [self.word_to_idx.get(word, self.word_to_idx["<UNK>"]) for word in x]
@@ -127,29 +138,40 @@ class DataSet(object):
         :return:
         """
         data = self._read_data()
-        self._get_vocab(data)
+        if not os.listdir("word2vec/" + self.model):
+            self._get_vocab(data)
+        else:
+            with open("word2vec/" + self.model + "/word2idx.pkl", "r") as f:
+                self.word_to_idx = pickle.load(f)
 
-        sub_data = []
-        for item in data:
-            if item[2] == "1":
-                sub_data.append(item)
-            else:
-                sample = random.choice([0, 1, 2, 3])
-                if sample == 0:
+            with open("word2vec/" + self.model + "/idx2word.pkl", "r") as f:
+                self.idx_to_word = pickle.load(f)
+
+        # 对负例样本进行下采样，让数据更平衡
+        if self.down_sample:
+            sub_data = []
+            for item in data:
+                if item[2] == "1":
                     sub_data.append(item)
+                else:
+                    sample = random.choice([0, 1, 2, 3])
+                    if sample == 0:
+                        sub_data.append(item)
 
-        print("sample data numble: {}".format(len(sub_data)))
-        random.shuffle(sub_data)
+            print("sample data numble: {}".format(len(sub_data)))
+            random.shuffle(sub_data)
+            data = sub_data
+
         if self.is_concat:
             x = [[self._transition_idx(
                 row[0].strip().split(" ") + ["<SEP>"] + row[1].strip().split(" "))]
-                for row in sub_data]
+                for row in data]
         else:
             x = [[self._transition_idx(row[0].strip().split(" ")),
                   self._transition_idx(row[1].strip().split(" "))]
-                 for row in sub_data]
+                 for row in data]
 
-        label = [[self.label_to_idx[row[2]]] for row in sub_data]
+        label = [[self.label_to_idx[row[2]]] for row in data]
 
         new_data = []
         for i in range(len(x)):
