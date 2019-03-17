@@ -1,10 +1,12 @@
-import math
+"""
+训练bilstm attention模型
+"""
 import os
 
 import numpy as np
 import tensorflow as tf
 from data_helper import DataSet
-from model import BiLSTMAttention
+from blstm_atten import BiLSTMAttention
 from metrics import mean, cal_acc, cal_auc, cal_f1
 
 
@@ -19,15 +21,16 @@ flags.DEFINE_float("learning_rate", 1e-3, "Learning rate")
 flags.DEFINE_integer("batch_size", 128, "Batch size")
 flags.DEFINE_float("dropout_prob", 0.5, "keep dropout prob")
 flags.DEFINE_integer("epochs", 10, "Maximum # of training epochs")
-flags.DEFINE_string("word_embedding_path", "word2vec/word_embedding.npy", "word embedding numpy store path")
+flags.DEFINE_string("word_embedding_path", "word2vec/blstm_atten/word_embedding.npy",
+                    "word embedding numpy store path")
 flags.DEFINE_string("data_path", "data/tokens.txt", "raw data path")
 flags.DEFINE_integer("steps_per_checkpoint", 100, "Save model checkpoint every this iteration")
-flags.DEFINE_string("model_dir", "model/", "Path to save model checkpoints")
-flags.DEFINE_string("model_name", "chatbot.ckpt", "File name used for model checkpoints")
+flags.DEFINE_string("model_dir", "model/blstm_atten/", "Path to save model checkpoints")
+flags.DEFINE_string("model_name", "atec.ckpt", "File name used for model checkpoints")
 
 flags.DEFINE_float("ratio", 0.1, "eval data ratio")
 
-dataSet = DataSet(filename=FLAGS.data_path, embedding_size=FLAGS.embedding_size)
+dataSet = DataSet(filename=FLAGS.data_path, embedding_size=FLAGS.embedding_size, model="blstm_atten")
 
 # 生成训练集和测试集
 train_data, eval_data = dataSet.gen_train_eval_data()

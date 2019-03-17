@@ -4,7 +4,7 @@ import tensorflow as tf
 # 构建模型
 class BiLSTMAttention(object):
     """
-    Text CNN 用于文本分类
+    bilstm attetion基准模型，句子是合并输入的，中间用<SEP>分割符分开
     """
 
     def __init__(self, embedding_size, hidden_sizes, word_embedding, learning_rate,
@@ -137,7 +137,13 @@ class BiLSTMAttention(object):
         return output
 
     def train(self, sess, batch, keep_prob):
-        # 对于训练阶段，需要执行self.train_op, self.loss, self.summary_op三个op，并传入相应的数据
+        """
+        定义训练方法
+        :param sess:
+        :param batch:
+        :param keep_prob:
+        :return:
+        """
 
         feed_dict = {self.input_x: batch["x"],
                      self.sequence_len: batch["x_length"],
@@ -150,7 +156,12 @@ class BiLSTMAttention(object):
         return loss, preds, binary_preds
 
     def eval(self, sess, batch):
-        # 对于eval阶段，不需要反向传播，所以只执行self.loss, self.summary_op两个op，并传入相应的数据
+        """
+        定义验证方法
+        :param sess:
+        :param batch:
+        :return:
+        """
         feed_dict = {self.input_x: batch["x"],
                      self.sequence_len: batch["x_length"],
                      self.input_y: batch["label"],
@@ -162,7 +173,12 @@ class BiLSTMAttention(object):
         return loss, preds, binary_preds
 
     def infer(self, sess, batch):
-        # infer阶段只需要运行最后的结果，不需要计算loss，所以feed_dict只需要传入encoder_input相应的数据即可
+        """
+        定义推断方法
+        :param sess:
+        :param batch:
+        :return:
+        """
         feed_dict = {self.input_x: batch["x"],
                      self.sequence_len: batch["x_length"],
                      self.keep_prob: 1.0}
