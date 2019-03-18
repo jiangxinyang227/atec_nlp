@@ -40,11 +40,13 @@ class BiLSTMAttention(object):
                 with tf.name_scope("Bi-LSTM" + str(idx)):
                     # 定义前向LSTM结构
                     lstm_fw_cell = tf.nn.rnn_cell.DropoutWrapper(
-                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size, state_is_tuple=True),
+                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size, initializer=tf.orthogonal_initializer(),
+                                                state_is_tuple=True),
                         output_keep_prob=self.keep_prob)
                     # 定义反向LSTM结构
                     lstm_bw_cell = tf.nn.rnn_cell.DropoutWrapper(
-                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size, state_is_tuple=True),
+                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size, initializer=tf.orthogonal_initializer(),
+                                                state_is_tuple=True),
                         output_keep_prob=self.keep_prob)
 
                     # 采用动态rnn，可以动态的输入序列的长度，若没有输入，则取序列的全长

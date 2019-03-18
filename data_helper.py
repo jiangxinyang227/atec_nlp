@@ -141,10 +141,10 @@ class DataSet(object):
         if not os.listdir("word2vec/" + self.model):
             self._get_vocab(data)
         else:
-            with open("word2vec/" + self.model + "/word2idx.pkl", "r") as f:
+            with open("word2vec/" + self.model + "/word2idx.pkl", "rb") as f:
                 self.word_to_idx = pickle.load(f)
 
-            with open("word2vec/" + self.model + "/idx2word.pkl", "r") as f:
+            with open("word2vec/" + self.model + "/idx2word.pkl", "rb") as f:
                 self.idx_to_word = pickle.load(f)
 
         # 对负例样本进行下采样，让数据更平衡
